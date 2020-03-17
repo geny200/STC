@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>GJsonTree.qml</file>
+        <file>GMenuBar.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>GMenu.qml</file>
+    </qresource>
+</RCC>
