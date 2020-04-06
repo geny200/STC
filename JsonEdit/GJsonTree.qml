@@ -12,6 +12,7 @@ QuickControl1.TreeView {
     signal s_paste()
     signal s_cut()
     signal s_delete()
+    signal s_create()
     signal s_insert()
 
     anchors.fill: parent
@@ -191,5 +192,6 @@ QuickControl1.TreeView {
 
     onS_copy: jsonEditor.sl_copy(id_sel.currentIndex)
     onS_paste: jsonEditor.sl_paste(id_sel.currentIndex)
+    onS_create: jsonEditor.sl_new(id_sel.currentIndex)
     onS_insert: jsonEditor.sl_insert(id_sel.currentIndex)
 }

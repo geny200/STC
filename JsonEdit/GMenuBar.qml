@@ -66,6 +66,11 @@ MenuBar {
         MenuSeparator {}
 
         MenuItem {
+            text: qsTr("&New")
+            onTriggered: s_create()
+        }
+
+        MenuItem {
             text: qsTr("&Delete")
             onTriggered: s_delete()
         }
@@ -81,14 +86,13 @@ MenuBar {
         dim: true
 
         MenuItem {
+            text: qsTr("Sho&rtcut")
+            onTriggered: id_dialogHelp.visible = true
+        }
+
+        MenuItem {
             text: qsTr("&About")
             onTriggered: id_dialogAbout.visible = true
         }
     }
 }
-
-/*##^##
-Designer {
-    D{i:0;autoSize:true;height:480;width:640}
-}
-##^##*/

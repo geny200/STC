@@ -47,7 +47,35 @@ void GJsonEditor::sl_loadFile(const QString& fileName) {
         inPut.close();
 
         QJsonParseError parseError; //ignore
-        m_JsonModel.load(QJsonDocument::fromJson(data, &parseError));
+        GParseError err = m_JsonModel.load(QJsonDocument::fromJson(data, &parseError));
+
+        if (parseError.error != QJsonParseError::NoError) {
+            QMessageBox msgBox;
+            msgBox.setText(parseError.errorString());
+            msgBox.exec();
+        }
+        else {
+            if (err != GParseError::NoError && err != GParseError::NullData) {
+                QMessageBox msgBox;
+                QString sErrorStr = "Ошибка в структуре json: ";
+                switch (err) {
+                case GParseError::BadHierarchy:
+                    sErrorStr += "Неверная иерархия вложенности Station -> Arm -> Device";
+                    break;
+                case GParseError::MissingFieldId:
+                    sErrorStr += "Отсутствует поле \"id\"";
+                    break;
+                case GParseError::MissingFieldName:
+                    sErrorStr += "Отсутствует поле \"name\"";
+                    break;
+                case GParseError::MissingFieldType:
+                    sErrorStr += "Отсутствует поле \"type\"";
+                    break;
+                }
+                msgBox.setText(sErrorStr);
+                msgBox.exec();
+            }
+        }
     }
 }
 
@@ -64,4 +92,9 @@ void GJsonEditor::sl_insert(const QModelIndex& item) {
     if (item.isValid())
         if (!m_JsonModel.insert_row(item, 0, QApplication::clipboard()->text(QClipboard::Clipboard)))
             m_JsonModel.insert_row(item);
+}
+
+void GJsonEditor::sl_new(const QModelIndex& item) {
+    if (item.isValid() && item.parent() != item)
+        m_JsonModel.insert_row(item.parent());
 }

@@ -45,7 +45,7 @@ bool GJsonModel::GJsonItem::remove(size_t position) {
 }
 
 bool GJsonModel::GJsonItem::insert_content(size_t position, GJsonItem* oldParent) {
-    if (position >= m_vChildItem.size())
+    if (position >= m_vChildItem.size() && position)
         return false;
 
     for (auto& iChild : oldParent->m_vChildItem)
@@ -258,7 +258,7 @@ QByteArray GJsonModel::get_row(const QModelIndex& item, QJsonDocument::JsonForma
 
 bool GJsonModel::insert_row(const QModelIndex& item, size_t row, const QString& str) {
     if (GJsonItem* parentItem = get_item(item);
-            parentItem != nullptr){
+            parentItem != nullptr) {
 
         GJsonItem newRows(QList<QVariant>({"name", "id", parentItem->get_type()}));
         setup_data(QJsonDocument::fromJson(str.toUtf8()).object(), &newRows);
@@ -282,7 +282,7 @@ bool GJsonModel::insert_row(const QModelIndex& item) {
         parentItem->append_child(
                     new GJsonItem(
                         QList<QVariant>(
-                            {
+        {
                                 "name - " + get_typename((GJsonModel::GJsonType)(parentItem->get_type() + 1)),
                                 "id - "+ get_typename((GJsonModel::GJsonType)(parentItem->get_type() + 1)),
                                 parentItem->get_type() + 1
@@ -310,21 +310,27 @@ bool GJsonModel::removeRows(int position, int rows, const QModelIndex& parent) {
 void GJsonModel::clear() {
     beginResetModel();
     delete m_pRoot;
-    m_pRoot = new GJsonItem(QList<QVariant>("name", "id"), nullptr);
+    m_pRoot = new GJsonItem(QList<QVariant>({"name", "id", GJsonModel::GJsonType::Unrecognized}), nullptr);
     endResetModel();
 }
 
-bool GJsonModel::load(const QJsonDocument& dataJson) {
+void GJsonModel::create() {
+    beginResetModel();
+    m_pRoot->append_child(new GJsonItem(QList<QVariant>({"name - station", "id - station", GJsonModel::GJsonType::Station}), m_pRoot));
+    endResetModel();
+}
+
+GParseError GJsonModel::load(const QJsonDocument& dataJson) {
     if (dataJson.isNull())
-        return false;
+        return GParseError::NullData;
 
     beginResetModel();
     delete m_pRoot;
     m_pRoot = new GJsonItem(QList<QVariant>({"name", "id", GJsonModel::GJsonType::Unrecognized}), nullptr);
-    setup_data(dataJson.array(), m_pRoot);
+    GParseError err = setup_data(dataJson.array(), m_pRoot);
     endResetModel();
 
-    return true;
+    return err;
 }
 
 QJsonArray GJsonModel::to_json() const {
@@ -349,14 +355,19 @@ GJsonModel::~GJsonModel() {
     delete m_pRoot;
 }
 
-void GJsonModel::setup_data(const QJsonValue& value, GJsonItem* parent) {
+GParseError GJsonModel::setup_data(const QJsonValue& value, GJsonItem* parent) {
     if (value.isObject()) {
-        if (!value["name"].isString() || !value["id"].isString() || !value["type"].isString())
-            return;
+
+        if (!value["name"].isString())
+            return GParseError::MissingFieldName;
+        if (!value["id"].isString())
+            return GParseError::MissingFieldId;
+        if (!value["type"].isString())
+            return GParseError::MissingFieldType;
 
         auto localType = get_typeenum(value["type"].toString());
         if (localType != parent->get_type() + 1)
-            return;
+            return GParseError::BadHierarchy;
 
         QList<QVariant> columnData;
         columnData << value["name"].toString() << value["id"].toString() << localType;
@@ -364,16 +375,18 @@ void GJsonModel::setup_data(const QJsonValue& value, GJsonItem* parent) {
 
         if (auto& localValue = value["items"];
                 localValue.isArray())
-            setup_data(localValue, parent->last());
-        return;
+            return setup_data(localValue, parent->last());
+        return GParseError::NoError;
     }
 
     if (value.isArray()) {
+        GParseError err = GParseError::NullData;
         for (auto localValue : value.toArray())
             if (localValue.isObject())
-                setup_data(localValue, parent);
+                err = qMax(setup_data(localValue, parent), err);
+        return err;
     }
-    return;
+    return GParseError::NullData;
 }
 
 GJsonModel::GJsonItem* GJsonModel::get_item(const QModelIndex& ptr) const {

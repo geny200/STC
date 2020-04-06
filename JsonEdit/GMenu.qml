@@ -134,12 +134,17 @@ Drawer {
                 }
 
                 ListElement {
+                    text: qsTr("&New")
+                    func: () => s_create()
+                }
+
+                ListElement {
                     text: qsTr("&Delete")
                     func: () => s_delete()
                 }
 
                 ListElement {
-                    text: qsTr("&Insert")
+                    text: qsTr("&Insert new")
                     func: () => s_insert()
                 }
             }
@@ -214,6 +219,11 @@ Drawer {
                               id_settings.visible = true
                               id_stackView.push(id_settings)
                           }
+                }
+
+                ListElement {
+                    text: qsTr("&Help")
+                    func: () => id_dialogHelp.visible = true
                 }
 
                 ListElement {

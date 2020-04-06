@@ -12,6 +12,7 @@ ApplicationWindow {
     signal s_copy()
     signal s_paste()
     signal s_cut()
+    signal s_create()
     signal s_insert()
     signal s_delete()
     signal s_switchMenu()
@@ -86,6 +87,113 @@ ApplicationWindow {
     }
 
     Dialog {
+        id: id_dialogHelp
+
+        title: qsTr("Help")
+        visible: false
+        modal: true
+        clip: true
+
+        anchors.centerIn: Overlay.overlay
+        standardButtons: Dialog.Ok
+        height: parent.height < 350 ? 350 : (parent.height > 700 ? 700 : parent.height)
+        width: 400
+
+
+        Label {
+            id: id_helpOne
+
+            width: parent.width
+            wrapMode: "WordWrap"
+
+            horizontalAlignment: "AlignLeft"
+            text: qsTr("- To select, click on the desired field once.")
+        }
+
+        Label {
+            id: id_helpTwo
+
+            anchors.topMargin: 5
+            anchors.top: id_helpOne.bottom
+            width: parent.width
+            wrapMode: "WordWrap"
+
+            horizontalAlignment: "AlignLeft"
+            text: qsTr("- To change the data, double-click on the desired field. To save the changed data in the field press \"Enter\". To cancel press \"Esc\" or change focus to another element")
+        }
+
+        Label {
+            id: id_helpThree
+
+            anchors.topMargin: 5
+            anchors.top: id_helpTwo.bottom
+            width: parent.width
+            wrapMode: "WordWrap"
+
+            horizontalAlignment: "AlignLeft"
+            text: qsTr("- To change the structure use the menu or shortcut.")
+        }
+
+        Label {
+            id: id_helpFour
+
+            anchors.topMargin: 5
+            anchors.top: id_helpThree.bottom
+            width: parent.width
+            wrapMode: "WordWrap"
+
+            horizontalAlignment: "AlignLeft"
+            text: qsTr("- List of available shortcut:")
+        }
+
+        ListView {
+            ScrollBar.vertical: ScrollBar {
+              visible: true
+            }
+            clip: true
+            id: id_listHelp
+            anchors.top: id_helpFour.bottom
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.right: parent.right
+            delegate: ToolButton {
+                text:  model.text
+
+                flat: true
+                width: id_listHelp.width
+            }
+
+            model: ListModel {
+                ListElement {
+                    text: qsTr("ctrl + C - Copy selected item")
+                }
+                ListElement {
+                    text: qsTr("ctrl + V - Paste after selected item")
+                }
+                ListElement {
+                    text: qsTr("ctrl + X - Cut selected item")
+                }
+                ListElement {
+                    text: qsTr("ctrl + N - Create a new item after the selected")
+                }
+                ListElement {
+                    text: qsTr("delete - Delete selected item")
+                }
+                ListElement {
+                    text: qsTr("ctrl + S - Save file")
+                }
+                ListElement {
+                    text: qsTr("ctrl + S + A - Save as")
+                }
+                ListElement {
+                    text: qsTr("ctrl + O - Open file")
+                }
+            }
+        }
+
+    }
+
+    Dialog {
         id: id_dialogFileNotSaved
 
         title: qsTr("Attention")
@@ -141,7 +249,7 @@ ApplicationWindow {
 
     Shortcut {
         sequence: StandardKey.New
-        onActivated: createNewFile()
+        onActivated: s_create()
     }
 
     Shortcut {
@@ -183,7 +291,7 @@ ApplicationWindow {
         openFileDialog(qsTr("Save"), (path) => {
                            s_saveFile(path)
                            if (!jsonEditor.fileSaved)
-                               id_dialogFileNotSaved.visible = true
+                           id_dialogFileNotSaved.visible = true
                        })
     }
 
@@ -197,6 +305,7 @@ ApplicationWindow {
     function createNewFile() {
         id_dialogMessage.callBack = () => {
             jsonModel.clear()
+            jsonModel.create()
             jsonEditor.fileSaved = false
         }
         id_dialogMessage.visible = true
@@ -224,6 +333,7 @@ ApplicationWindow {
     onS_copy: id_view.s_copy()
     onS_paste: id_view.s_paste()
     onS_cut: id_view.s_cut()
+    onS_create: id_view.s_create()
     onS_delete: id_view.s_delete()
     onS_insert: id_view.s_insert()
     onS_saveFile: jsonEditor.sl_saveFile(fileName)

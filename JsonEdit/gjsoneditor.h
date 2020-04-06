@@ -4,6 +4,7 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QtQml>
+#include <QMessageBox>
 
 class GJsonEditor : public QObject {
     Q_OBJECT
@@ -21,6 +22,7 @@ public slots:
     Q_INVOKABLE void sl_copy(const QModelIndex& item);
     Q_INVOKABLE void sl_paste(const QModelIndex& item);
     Q_INVOKABLE void sl_insert(const QModelIndex& item);
+    Q_INVOKABLE void sl_new(const QModelIndex& item);
 
 private:
     GJsonModel m_JsonModel;

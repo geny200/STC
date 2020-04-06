@@ -8,6 +8,15 @@
 #include <QList>
 #include <vector>
 
+enum GParseError {
+    NullData = 0,
+    NoError = 1,
+    MissingFieldId = 2,
+    MissingFieldName = 3,
+    MissingFieldType = 4,
+    BadHierarchy = 5
+};
+
 class GJsonModel : public QAbstractItemModel {
     Q_OBJECT
 
@@ -57,7 +66,7 @@ class GJsonModel : public QAbstractItemModel {
         GJsonItem *m_pParent;
     };
 
-    void setup_data(const QJsonValue& value, GJsonItem* parent);
+    GParseError setup_data(const QJsonValue& value, GJsonItem* parent);
     GJsonItem* get_item(const QModelIndex& index) const;
 
 public:
@@ -65,6 +74,7 @@ public:
         NameRole = Qt::UserRole + 4,
         IdRole = Qt::UserRole + 5
     };
+
     Q_ENUM(Roles)
 
     GJsonModel(const QJsonDocument& dataJson, QObject* parent = nullptr);
@@ -90,11 +100,13 @@ public:
                                 const QModelIndex& parent = QModelIndex()) override;
     Q_INVOKABLE void clear();
 
+    Q_INVOKABLE void create();
+
     QByteArray get_row(const QModelIndex& item, QJsonDocument::JsonFormat format = QJsonDocument::Compact) const;
     bool insert_row(const QModelIndex& item, size_t row, const QString& str = QString());
     bool insert_row(const QModelIndex& item);
 
-    bool load(const QJsonDocument& fileName);
+    GParseError load(const QJsonDocument& fileName);
     QJsonArray to_json() const;
 
     QHash<int, QByteArray> roleNames() const override;
